@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Diary Entries</title>
+    <link rel="stylesheet" href="styles.css"> <!-- Optional: Link to an external CSS file for styling -->    
+</head>
+<body>
+    <div class="container">
+        <h1>Demo 2 - Diary app with AJAX</h1>
+        <div id="entries-container"></div>
+        <p id="no-entries-message" style="display: none;">No entries yet. Start writing your diary!</p>
+        <div class="form-container">
+            <form id="diary-form">
+                <input type="date" name="date" required>
+                <textarea name="content" rows="5" placeholder="Write your diary entry here..." required></textarea>
+                <button type="submit">Add Entry</button>
+            </form>
+        </div>
+    </div>
+
+    <script>      
+      let entries = [];
+
+      async function renderEntries() {
+        // load the entries with fetch API
+        const response = await fetch('/diaryentries');
+        entries = await response.json();
+
+        const entriesContainer = document.getElementById('entries-container');
+        const noEntriesMessage = document.getElementById('no-entries-message');
+        entriesContainer.innerHTML = '';
+
+        if (entries.length > 0) {
+            noEntriesMessage.style.display = 'none';
+            entries.forEach(entry => {
+              const entryDiv = document.createElement('div');
+              entryDiv.className = 'diary-entry';
+              entryDiv.innerHTML = `<h2>${entry.date}</h2><p>${entry.content}</p>`;
+              entriesContainer.appendChild(entryDiv);
+            });
+        } else {
+          noEntriesMessage.style.display = 'block';
+        }
+      }
+
+      document.getElementById('diary-form').addEventListener('submit', async function(e) {
+        e.preventDefault();
+        const date = e.target.date.value;
+        const content = e.target.content.value;
+        
+        // send the entry to the server with fetch API
+        await fetch('/diaryentries', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({ date, content })
+        });
+
+        renderEntries();
+        e.target.reset();
+      });
+
+      // Initial rendering of entries
+      renderEntries();
+    </script>
+</body>
+</html>
